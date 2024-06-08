@@ -1,36 +1,50 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
 import axios from 'axios';
 
-const BabyFact = () => {
+export const BabyFact = () => {
+    // Stores the API data
+    const [babyFact, setBabyFact] = useState(null);
+    // Starts the data at week 1
+    const [currentWeek, setCurrentWeek] = useState(1);
 
-const [BabyFacts, setBabyFact] = useState([]);
-
+// FETCHES baby fact for the current week when component mounts
     useEffect(() => {
-        axios.get('/api/NewDad-App/BabyFacts')
-        .then(response => setBabyFact(response.data))
-        .catch(error => console.error(error));
-    }, []);
+        fetchFactByWeek();
+    }, [currentWeek]); // Re-run effect whenever currentWeek changes
 
+    const fetchFactByWeek = () => {
+        axios.get(`http://localhost:8005/api/NewDad-App/BabyFacts`)
+        .then(response => {
+            const nextBabyFact = response.data.find(fact => fact.week === currentWeek);
+            setBabyFact(nextBabyFact);
+        })
+        .catch(error => {
+            console.error('Error fetching baby fact.', error);
+        });
+    };
+
+// Moves data to the next week
+    const incrementWeek = () => {
+        setCurrentWeek(prevWeek => prevWeek + 1);
+    };
 
     return (
         <>
-            <Card style={{ width: '160px' }}
-              // onClick={() => handleHeroSelect(hero.name)} option to add an onclick/touch function
-            >
-              {/*<Card.Img
-                src={exercises.portrait}
-                style={{ height: '120px', objectFit: 'cover' }}/>*/}
-
-            <Card.Body>
-                <Card.Title>Week {BabyFacts.week}</Card.Title>
-                {/* add if statement here for if there is a link in the json}*/}
-                <Card.Text>{BabyFacts.fact}</Card.Text>
-            </Card.Body>
-     </Card>
-     </>
-    )
-
-}
-
-export default BabyFact;
+            {babyFact && (
+                <Card style={{ marginBottom: '20px' }}>
+                    <CardContent>
+                    <Typography variant="h4">What's going on with your baby this week?</Typography>
+                        <Typography variant="h6">
+                        Baby Fact Week {babyFact.week}:</Typography>
+                        <Typography variant="body1">{babyFact.fact}</Typography>
+                    </CardContent>
+                    <button onClick={incrementWeek}>Next Week</button>
+                </Card>
+            )}
+            
+        </>
+    );
+};

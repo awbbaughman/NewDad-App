@@ -1,126 +1,68 @@
-import React, { useState, useContext, useEffect } from 'react';
-import Avatar from '@material-ui/core/Avatar';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import { Link } from 'react-router-dom';
-import BorderColorIcon from '@material-ui/icons/BorderColor';
-import Typography from '@material-ui/core/Typography';
-import withStyles from '@material-ui/core/styles/withStyles';
-import styles from './LoginStyles';
-import Grid from '@material-ui/core/Grid';
-import AlertContext from '../../context/alert/alertContext';
-import AuthContext from '../../context/auth/authContext';
-// import { ValidatorForm, TextValidator } from 'react-material-ui-form-validator';
+import React, { useState } from "react";
+import { useUserContext } from "../Contexts/UserContext";
 
-const Login = (props) => {
-  const { classes } = props;
 
-  const alertContext = useContext(AlertContext);
-  const authContext = useContext(AuthContext);
+export const LoginForm = (props) => {
+    const [userEmail, setUserEmail] = useState('');
+    const [userPassword, setUserPassword] = useState('');
+    const [submitResult, setSubmitResult] = useState('');
+    const {currentUser, handleUpdateUser} = useUserContext();   
 
-  const { setAlert } = alertContext;
-  const { login, error, clearErrors, isAuthenticated } = authContext;
+    // needs functionality to GET user based on who is logged in
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      props.history.push('/dashboard');
-    }
-    if (error) {
-      error.errors.map((err) => {
-        console.log(err);
-        setAlert(err.msg, 'error');
-        clearErrors();
-        return error;
-      });
-    }
-    // eslint-disable-next-line
-  }, [error, isAuthenticated, props.history]);
-
-  const [user, setUser] = useState({
-    email: '',
-    password: '',
-  });
-
-  const { email, password } = user;
-  const handleChange = (e) => {
-    setUser({ ...user, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
+const handleSubmit = (e) => {
     e.preventDefault();
+        if (userPassword.length < 4) {
+            setSubmitResult('Password must be at least 5 characters long');
+        } else if (userPassword === userEmail) {
+            setSubmitResult('Password must not match email address');
+        } else {
+            setSubmitResult('Successful login.');
+    handleUpdateUser({ email: userEmail })
+        }
+    }
+{/* if the user is already logged in, show this message instead of the login form */}
+if (currentUser) {return (
+    <div>
+<p>Welcome {currentUser.email}, you're logged in!</p>
+<button onClick={() => handleUpdateUser(null)}>Log Out</button>
+</div>
+); }
 
-    login({
-      email,
-      password,
-    });
-  };
-
-  return (
-    <div className={classes.paper}>
-      <Avatar color='primary' className={classes.avatar}>
-        <BorderColorIcon />
-      </Avatar>
-      <Typography component='h1' variant='h5'>
-        Sign in
-      </Typography>
-      <form className={classes.form} noValidate onSubmit={handleSubmit}>
-        <TextField
-          variant='outlined'
-          margin='normal'
-          required
-          fullWidth
-          id='email'
-          label='Email Address'
-          name='email'
-          value={email}
-          onChange={handleChange}
-          type='email'
-          // validators={['required', 'isEmail']}
-          // errorMessages={['this field is required', 'email is not valid']}
-          autoComplete='email'
-          autoFocus
-        />
-        <TextField
-          variant='outlined'
-          margin='normal'
-          required
-          fullWidth
-          name='password'
-          value={password}
-          onChange={handleChange}
-          label='Password'
-          type='password'
-          id='password'
-          // validators={['required', 'isLength']}
-          // errorMessages={[
-          //   'this field is required',
-          //   'password must be minimum 6 character',
-          // ]}
-          autoComplete='current-password'
-        />
-
-        <Button
-          type='submit'
-          fullWidth
-          variant='contained'
-          color={'primary'}
-          className={classes.submit}
-        >
-          Sign In
-        </Button>
-        <Grid container>
-          <Grid item>
-            <Typography>
-              Don't have an account?
-              <Button color='primary' to='/register' component={Link}>
-                Register
-              </Button>
-            </Typography>
-          </Grid>
-        </Grid>
-      </form>
+return (
+    <center><div className="auth-form-container">
+        <form action="/" method="POST" className="LoginForm" onSubmit={handleSubmit}>
+            <div>
+                <label>Email Address:
+                    <input
+                        type="email"
+                        id="userEmail"
+                        placeholder="youremail@email.com"
+                        value={userEmail}
+                        name="userEmail"
+                        onChange={(e) => setUserEmail(e.target.value)}>
+                    </input>
+                </label>
+            </div>
+            <div>
+                <label>Password:
+                    <input 
+                        type="password"
+                        id="userPassword"
+                        placeholder="*********"
+                        value={userPassword}
+                        name="userPassword"
+                        onChange={(e) => setUserPassword(e.target.value)}>
+                    </input>
+                </label>
+            </div>
+            <button onClick={() => handleUpdateUser({})}>Log In</button>
+            <p>{submitResult}</p>
+            <button onClick={() => props.onFormSwitch('register')}>Don't have an account? Register here.</button>
+        </form>
     </div>
-  );
-};
+    </center>
+)
+}
 
-export default withStyles(styles)(Login);
+

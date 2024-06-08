@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+var mongoose = require("mongoose");
 
 const ActivitySchema = new mongoose.Schema({
     activity: String,
@@ -13,23 +13,26 @@ const ActivitySchema = new mongoose.Schema({
     key: String
 });
 
-const requestActivity = mongoose.model("Activity", requestActivitySchema);
-
 const BabyFactSchema = new mongoose.Schema({
     week: Number,
     fact: String,
 });
 
-const requestBabyFact = mongoose.model("BabyFact", requestBabyFactSchema);
-
-
 const userSchema = new mongoose.Schema({
-    name: String,
-    email: String,
-    password: String,
+    name: {type:String, require:true},
+    email: {type:String, require:true},
+    password: {type:String, require:true},
 });
 
-module.exports = {
-    requestActivity: requestActivity,
-    requestBabyFact: requestBabyFact
-  }
+const calendarDataSchema = new mongoose.Schema({
+    activity: String,
+    // date uses timestamp when data is logged.
+    date: { type: Date, default: Date.now },
+})
+
+const Activity = mongoose.model("Activity", ActivitySchema, "Activity");
+const BabyFact = mongoose.model("BabyFact", BabyFactSchema, "BabyFact");
+const User = mongoose.model("User", userSchema, "User");
+const CalendarData = mongoose.model("CalendarData", calendarDataSchema, "CalendarData");
+
+module.exports = {Activity, BabyFact, User, CalendarData}

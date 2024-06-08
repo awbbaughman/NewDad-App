@@ -1,152 +1,80 @@
-import React, { useState, useContext, useEffect } from 'react';
-import Avatar from '@material-ui/core/Avatar';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import { Link } from 'react-router-dom';
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
-import Typography from '@material-ui/core/Typography';
-import withStyles from '@material-ui/core/styles/withStyles';
-import styles from './LoginStyles';
-import Grid from '@material-ui/core/Grid';
-import AlertContext from '../../context/alert/alertContext';
-import AuthContext from '../../context/auth/authContext';
+import React, { useState } from "react";
+import axios from 'axios';
 
-const Register = (props) => {
-  const { classes } = props;
+export const Register = (props) => {
+    //Stores states for all registration pieces
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userPassword, setUserPassword] = useState('');
+  const [submitResult, setSubmitResult] = useState('');
 
-  const alertContext = useContext(AlertContext);
-  const authContext = useContext(AuthContext);
-
-  const { setAlert } = alertContext;
-  const { register, error, clearErrors, isAuthenticated } = authContext;
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      props.history.push('/dashboard');
-    }
-
-    if (error) {
-      error.errors.map((err) => {
-        setAlert(err.msg, 'error');
-        clearErrors();
-        return err;
-      });
-    }
-
-    // eslint-disable-next-line
-  }, [error, isAuthenticated, props.history]);
-
-  const [user, setUser] = useState({
-    name: '',
-    email: '',
-    password: '',
-    password2: '',
-  });
-
-  const { name, email, password, password2 } = user;
-
-  const handleChange = (e) => {
-    setUser({ ...user, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (name === '' || email === '' || password === '') {
-      setAlert('Please enter all fields ', 'error');
-    } else if (password !== password2) {
-      setAlert('Password do not match ', 'error');
-    } else {
-      register({
-        name,
-        email,
-        password,
-      });
+    try {
+        if (userPassword.length < 5) {
+            throw new Error('Password must be at least 5 characters long');
+        } else if (userPassword === userEmail) {
+            throw new Error('Password must not match email address');
+        } else {
+            const response = await axios.post('http://localhost:8005/api/NewDad-App/Users', {
+                name: userName,
+                email: userEmail,
+                password: userPassword
+            });
+            console.log('Registration successful:', response.data);
+            setSubmitResult('Registration successful.');
+            props.onFormSwitch('login');
+        }
+    } catch (error) {
+        console.error('Error during registration:', error.message);
+        setSubmitResult(`Registration failed: ${error.message}`);
     }
-  };
-
-  return (
-    <div className={classes.paper}>
-      <Avatar color='primary' className={classes.avatar}>
-        <LockOutlinedIcon />
-      </Avatar>
-      <Typography component='h1' variant='h5'>
-        Register
-      </Typography>
-      <form className={classes.form} noValidate onSubmit={handleSubmit}>
-        <TextField
-          variant='outlined'
-          margin='normal'
-          required
-          fullWidth
-          id='name'
-          label='Name'
-          name='name'
-          value={name}
-          onChange={handleChange}
-          autoComplete='name'
-          autoFocus
-        />
-        <TextField
-          variant='outlined'
-          margin='normal'
-          required
-          fullWidth
-          id='email'
-          label='Email Address'
-          name='email'
-          value={email}
-          onChange={handleChange}
-          type='email'
-          autoComplete='email'
-        />
-        <TextField
-          variant='outlined'
-          margin='normal'
-          required
-          fullWidth
-          name='password'
-          value={password}
-          onChange={handleChange}
-          label='Password'
-          type='password'
-          id='password'
-          autoComplete='current-password'
-        />
-        <TextField
-          variant='outlined'
-          margin='normal'
-          required
-          fullWidth
-          name='password2'
-          value={password2}
-          onChange={handleChange}
-          label='Confirm Password'
-          type='password'
-          id='password2'
-          autoComplete='current-password'
-        />
-        <Button
-          type='submit'
-          fullWidth
-          variant='contained'
-          color={'primary'}
-          className={classes.submit}
-        >
-          Register
-        </Button>
-        <Grid container>
-          <Grid item>
-            <Typography>
-              Have an account?
-              <Button color='primary' to='/login' component={Link}>
-                Log In
-              </Button>
-            </Typography>
-          </Grid>
-        </Grid>
-      </form>
-    </div>
-  );
 };
 
-export default withStyles(styles)(Register);
+  return (
+    <center>
+      <div className="auth-form-container">
+        <form className="Register" onSubmit={handleSubmit}>
+          <div>
+            <label>Full Name:
+              <input
+                id="userName"
+                placeholder="Full Name"
+                value={userName}
+                name="userName"
+                onChange={(e) => setUserName(e.target.value)}
+              />
+            </label>
+            <label>Email Address:
+              <input
+                type="email"
+                id="userEmail"
+                placeholder="youremail@email.com"
+                value={userEmail}
+                name="userEmail"
+                onChange={(e) => setUserEmail(e.target.value)}
+              />
+            </label>
+          </div>
+          <div>
+            <label>Password:
+              <input
+                type="password"
+                id="userPassword"
+                placeholder="*********"
+                value={userPassword}
+                name="userPassword"
+                onChange={(e) => setUserPassword(e.target.value)}
+              />
+            </label>
+          </div>
+          <button type="submit">Register</button>
+          <p>{submitResult}</p>
+          <button type="button" onClick={() => props.onFormSwitch('login')}>
+            Already have an account? Log in here.
+          </button>
+        </form>
+      </div>
+    </center>
+  );
+};

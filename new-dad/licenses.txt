@@ -1,0 +1,7 @@
+Activities Database:
+Copyright (c) 2019 Drew Thoennes, Bored-API
+
+Baby Facts Database:
+Sourced from Parents.com: "A Week-by-Week Guide to Your Baby's First Year Milestones";
+by Laura Asmundsson, Updated on April 25, 2024
+
